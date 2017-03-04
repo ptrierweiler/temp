@@ -7,6 +7,15 @@ import argparse
 schema = 'ncep_temp'
 table = 'data'
 
+parser = argparse.ArgumentParser(description='Summerizes ncep temperture rasters')
+
+parser.add_argument('-y', type=str, metavar='2016', nargs='?', required=True,
+                    help='Year of data')
+
+args = parser.parse_args()
+
+year = int(args.y)
+
 try:
     conn = psycopg2.connect("dbname='tlaloc'")
 except:
@@ -49,7 +58,7 @@ def summerize(layer,yr):
   
   	# summerizing files
     for i in date_diff_list:
-        print("processing date: " + i)
+        print("processing date: " + i + " for " + layer)
         base = "{schema}.ncep_temp_{date}".format(schema=schema, date=i.replace('-',''))
         geo = "wgs84" '.' + layer
         pydate = datetime.strptime(base.split('_')[-1],'%Y%m%d').date()
@@ -99,8 +108,8 @@ def summerize(layer,yr):
                     {maxt}, '{ly}')".format(sch=schema, tab=table, date=db_date, geo=geo,
                     mint=lt, maxt=ht, ly=geo_layer))
                 
-summerize('brasil_mesoregion',2016)
-summerize('ana_bacias', 2016)
-summerize('nass_asds',2016)
+summerize('brasil_mesoregion', year)
+summerize('ana_bacias', year)
+summerize('nass_asds', year)
 cur.close()
 conn.close()
