@@ -20,17 +20,23 @@ link = "ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/surface/air.sig995.{yr}.
 
 # file test overwriting if exists
 ncep_file = path + "air.sig995.{yr}.nc".format(yr=year)
-if os.path.isfile(ncep_file) == True:
+if os.path.isfile(ncep_file) is True:
    os.remove(ncep_file)
     
 # Downloading should be using python commands 
 os.system('wget {link} -P {path}'.format(path=path, link=link))
 
+os.chdir("/data/temp/ncep_reanal/")
 # creating list of bands
-os.system('gdalinfo -nomd NETCDF:"{ncep_file}":air > /scripts/temp/band.txt'.format(
-ncep_file=ncep_file))
-
 band_file= '/scripts/temp/band.txt'
+if os.path.isfile(band_file) is True:
+    print("Removing old band file")    
+    os.remove(band_file)
+
+os.system('gdalinfo -nomd NETCDF:"{ncep_file}":air '.format(ncep_file=ncep_file) + \
+          '> /scripts/temp/band.txt')
+
+
 with open(band_file, 'r', encoding='utf-8') as f:
     bands = f.readlines()
     
@@ -43,6 +49,7 @@ try:
 except:
     print("I am unable to connect to the database")
     exit()
+
     
 conn.autocommit = True
 cur = conn.cursor()
@@ -87,3 +94,4 @@ for i in range(1,max_band+1):
    
 cur.close()
 conn.close()
+os.system('/scripts/temp/ncep_temp_sumerize.py -y 2017')
