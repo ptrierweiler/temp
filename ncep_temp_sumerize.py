@@ -104,9 +104,10 @@ def summerize(layer,yr):
                 tab=table, geo=geo, date=db_date))
                 cnt = cur.fetchall()[0][0]
                 if cnt == 0:
-                    cur.execute("insert into {sch}.{tab} values ('{geo}', '{date}', {mint}, \
-                    {maxt}, '{ly}')".format(sch=schema, tab=table, date=db_date, geo=geo,
-                    mint=lt, maxt=ht, ly=geo_layer))
+                    cur.execute("insert into {}.{}".format(schema, table) +
+                                "(gid, date, low, high, geolayer)" +
+                                "values ('{}', '{}', ".format(geo, db_date,) +
+                                "{}, {}, '{}')".format(lt, ht, geo_layer))
                 
 summerize('brasil_mesoregion', year)
 summerize('ana_bacias', year)
