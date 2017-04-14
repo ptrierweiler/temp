@@ -85,7 +85,8 @@ for i in range(1,max_band+1):
         os.remove("{out}_east.tif".format(out=name))
         os.remove("{out}_west.tif".format(out=name))
         os.remove("{out}.tif".format(out=name))
-        #os.remove("{out}_fix.tif".format(out=name))
+        os.remove("{out}_wgs84.tif".format(out=name))
+        os.remove("{out}_fix.tif".format(out=name))
         print("{out}.tif".format(out=name))
         # resample down .5
         cur.execute("update ncep_temp.{tab} set rast=ST_Rescale(rast, .5, -.5)".format(tab=table))
