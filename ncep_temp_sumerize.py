@@ -2,7 +2,7 @@
 import psycopg2
 from datetime import datetime, timedelta
 import argparse
-
+import json
 
 schema = 'ncep_temp'
 table = 'data'
@@ -12,12 +12,21 @@ parser = argparse.ArgumentParser(description='Summerizes ncep temperture rasters
 parser.add_argument('-y', type=str, metavar='2016', nargs='?', required=True,
                     help='Year of data')
 
+parser.add_argument('-g', type=str, metavar='nass_asds', nargs='?', required=True,
+                    help='geo layer')
+
 args = parser.parse_args()
 
 year = int(args.y)
+in_geo = args.g 
+
+with open('/scripts/config.json') as j:
+    config = json.load(j)
+
+dbname=config['dbname']
 
 try:
-    conn = psycopg2.connect("dbname='tlaloc'")
+    conn = psycopg2.connect("dbname='{}'".format(dbname))
 except:
     print("I am unable to connect to the database")
     exit()
@@ -109,8 +118,5 @@ def summerize(layer,yr):
                                 "values ('{}', '{}', ".format(geo, db_date,) +
                                 "{}, {}, '{}')".format(lt, ht, geo_layer))
                 
-summerize('brasil_mesoregion', year)
-summerize('ana_bacias', year)
-summerize('nass_asds', year)
+summerize(in_geo, year)
 cur.close()
-conn.close()
