@@ -4,6 +4,7 @@ import zipfile
 from datetime import datetime, timedelta
 import psycopg2
 import argparse
+import json
 
 parser = argparse.ArgumentParser(description='Download and ingest NCEP reanalysis temperture')
 
@@ -11,10 +12,15 @@ parser.add_argument('-y', type=str, metavar='2016', nargs='?', required=True,
                     help='Year of data')
 
 args = parser.parse_args()
-
 year = args.y
 
-path = "/data/temp/ncep_reanal/"
+# load config file
+with open('/scripts/config.json') as j:
+    config = json.load(j)
+
+path = config['reanal_path']
+dbname = config['dbname']
+
 
 link = "ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/surface/air.sig995.{yr}.nc".format(yr=year)
 
@@ -45,7 +51,7 @@ max_band = int(bands[-3].split()[1])
 print(max_band)
  
 try:
-    conn = psycopg2.connect("dbname='tlaloc'")
+    conn = psycopg2.connect("dbname='{}'".format(dbname))
 except:
     print("I am unable to connect to the database")
     exit()
@@ -81,7 +87,7 @@ for i in range(1,max_band+1):
         db_date = datetime.strptime(tif_name.split('_')[2],'%Y%j').strftime('%Y%m%d')
         print(db_date, p)
         os.system("gdalwarp -t_srs WGS84 {out}_fix.tif {out}_wgs84.tif".format(out=name))
-        os.system("raster2pgsql -I   {out}_wgs84.tif -d ncep_temp.{tab} | psql tlaloc".format(out=name, tab=table))
+        os.system("raster2pgsql -I   {out}_wgs84.tif -d ncep_temp.{tab} | psql {db}".format(out=name, tab=table, db=dbname))
         os.remove("{out}_east.tif".format(out=name))
         os.remove("{out}_west.tif".format(out=name))
         os.remove("{out}.tif".format(out=name))
@@ -95,4 +101,5 @@ for i in range(1,max_band+1):
    
 cur.close()
 conn.close()
-os.system('/scripts/temp/ncep_temp_sumerize.py -y 2017')
+os.system('/scripts/temp/ncep_temp_sumerize.py -y 2018 -g brasil_mesoregion')
+os.system('/scripts/temp/ncep_temp_sumerize.py -y 2018 -g nass_asds')
